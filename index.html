@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IPFS Terminal Runner Advanced</title>
+<title>Pelaksana Terminal IPFS Lanjutan</title>
 <style>
 body {
   margin:0; padding:0; font-family:'JetBrains Mono', monospace;
@@ -22,20 +22,37 @@ button {
   position:fixed; bottom:20px; right:20px;
   padding:10px 14px; border-radius:6px; border:none;
   background:#00ff66; color:#000; font-family:inherit;
-  font-weight:bold;
+  font-weight:bold; cursor:pointer; z-index:1000;
 }
+button:hover {background:#00dd55;}
 iframe {width:100%; height:100%; border:none;}
+.hidden {display:none;}
+.rainbow-text {
+  background: linear-gradient(45deg, #ff0000, #ff9900, #ffff00, #00ff00, #0099ff, #6600ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+.fireworks {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
 </style>
 </head>
 <body>
 
 <div id="terminal" class="cursor"></div>
-<button id="runBtn">▶ Run</button>
+<button id="runBtn">▶ Laksanakan</button>
 
 <script>
 const terminalEl = document.getElementById('terminal');
+const runBtn = document.getElementById('runBtn');
 const CID = "QmYCbe53x5YDSbKBAoXVXtri4H43ZZy5neUnQMFDtPXvSs";
-const GATEWAY = `https://gateway.pinata.cloud/ipfs/${CID}`;
+const GATEWAY = `https://ipfs.io/ipfs/${CID}`;
 
 /* Bunyi keyboard */
 const sounds = [1,2,3,4].map(i => {
@@ -43,6 +60,8 @@ const sounds = [1,2,3,4].map(i => {
   s.volume = 0.12;
   return s;
 });
+
+let loadingInterval;
 
 /* TYPE EFFECT with sound */
 function typeEffect(el, text, speed=20) {
@@ -67,49 +86,163 @@ function typeEffect(el, text, speed=20) {
 function loadingDots(msg, duration=2000) {
   return new Promise(resolve=>{
     let d=0;
-    const interval = setInterval(()=>{
+    clearInterval(loadingInterval);
+    loadingInterval = setInterval(()=>{
       terminalEl.textContent = `${msg}${'.'.repeat(d%4)}`;
       d++;
       terminalEl.scrollTop = terminalEl.scrollHeight;
     },400);
     setTimeout(()=>{
-      clearInterval(interval);
+      clearInterval(loadingInterval);
       terminalEl.textContent += "\n";
       resolve();
     }, duration);
   });
 }
 
-document.getElementById('runBtn').addEventListener('click', async () => {
-  document.getElementById('runBtn').remove();
-  
-  await loadingDots("</> Fetching import webhook metadata IPFS", 3000);
-  await typeEffect(terminalEl,
-`CID: ${CID} 
-# -------------------------------- 
+/* 🎇 UCAPAN SELAMAT TAHUN BARU 2026 */
+async function newYearMessage() {
+  const msg = 
+`    ✧･ﾟ: *✧･ﾟ:*  *:･ﾟ✧*:･ﾟ✧
+         🎉 SELAMAT 🎊
+        🥳 TAHUN BARU 🎇
+          ✨  2026  ✨                                      
+    ✧･ﾟ: *✧･ﾟ:*  *:･ﾟ✧*:･ﾟ✧
 
-GATEWAY: ${GATEWAY}
-# --------------------------------`, 20);
+✨ Selamat Tahun Baru 2026! ✨
 
+Semoga kod anda sentiasa berjaya dikompil, 
+metadata tidak pernah hilang, 
+dan hati anda dipenuhi harapan. 
+
+Moga tahun 2026 membawa:
+• Kompilasi tanpa error
+• Metadata yang terpelihara
+• Hati yang sentiasa berharap
+• Projek yang berjaya
+• Komuniti yang solid
+• Inovasi tanpa had
+
+"Dalam setiap baris kod, ada impian.
+ Dalam setiap commit, ada harapan.
+ Mari kita bangunkan masa depan bersama!" ✨
+
+`;
+
+  // Efek menaip + bunyi keyboard
+  await new Promise(resolve => {
+    let i = 0;
+    const type = () => {
+      terminalEl.textContent += msg.charAt(i);
+      if(i % 3 === 0){
+        const s = sounds[Math.floor(Math.random() * sounds.length)];
+        s.currentTime = 0; s.play().catch(()=>{});
+      }
+      i++;
+      terminalEl.scrollTop = terminalEl.scrollHeight;
+      if(i < msg.length) setTimeout(type, 5 + Math.random()*5);
+      else resolve();
+    };
+    type();
+  });
+
+  // Mesej kekal dengan animasi loading
+  const loadingMsg = `▶️ Klik butang 'Laksanakan' akses portal web`;
+  let d = 0;
+  clearInterval(loadingInterval);
+  loadingInterval = setInterval(() => {
+    terminalEl.textContent = msg + loadingMsg + '.'.repeat(d % 4);
+    d++;
+    terminalEl.scrollTop = terminalEl.scrollHeight;
+  }, 400);
+}
+
+// Tambah bunyi tahun baru (konfetti) pada klik
+function playNewYearSound() {
   try {
-    const res = await fetch(GATEWAY);
-    const htmlText = await res.text();
+    const newYearSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-happy-new-year-party-horn-sound-2956.mp3');
+    newYearSound.volume = 0.3;
+    newYearSound.play().catch(() => {});
+  } catch (e) {
+    console.log("Bunyi tahun baru tidak dapat dimainkan");
+  }
+}
 
-    await loadingDots("</> Download complete. Running code happy new year 2026", 2500);
+// 1️⃣ Jalankan ucapan terus selepas halaman load
+window.addEventListener('DOMContentLoaded', async () => {
+  await newYearMessage();
+});
 
-    // Clear terminal before iframe
-    terminalEl.innerHTML = "";
+runBtn.addEventListener('click', async () => {
+  // Mainkan bunyi tahun baru
+  playNewYearSound();
+  
+  // Hentikan loading dots sebelumnya
+  clearInterval(loadingInterval);
+  runBtn.remove();
 
-    // Render HTML di iframe
+  // 2️⃣ Loading fetching IPFS dalam bahasa Malaysia
+  await loadingDots("</> Mengambil metadata webhook dari IPFS", 3000);
+  await typeEffect(terminalEl,
+`📦 ID Kandungan (CID): ${CID}
+# ----------------------------
+
+🔗 Laluan Gateway: ${GATEWAY}
+# ----------------------------
+
+📊 Status: Mencapai nod IPFS...
+# ----------------------------
+
+`, 20);
+
+// Loading dengan mesej "Please wait..." dan dots
+await new Promise(resolve => {
+  let dots = 0;
+  const loadingText = "⏳ Tunggu sebentar";
+  const interval = setInterval(() => {
+    terminalEl.textContent += `\n${loadingText}${'.'.repeat(dots % 5)}`;
+    terminalEl.scrollTop = terminalEl.scrollHeight;
+    dots++;
+  }, 400);
+  
+  setTimeout(() => {
+    clearInterval(interval);
+    terminalEl.textContent += "\n\n";
+    resolve();
+  }, 2000);
+});
+
+
+
+  // 3️⃣ Fetch HTML dari IPFS dan render di iframe
+  try {
+    await loadingDots("</> Muat turun selesai. Menjalankan aplikasi", 2500);
+
     const iframe = document.createElement('iframe');
-    iframe.srcdoc = htmlText;
+    iframe.src = GATEWAY;
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    iframe.title = "Aplikasi Web dari IPFS";
+
+    terminalEl.innerHTML = "";
     terminalEl.appendChild(iframe);
 
   } catch(e) {
-    await typeEffect(terminalEl, `Error fetch IPFS: ${e}\n`, 10);
+    await typeEffect(terminalEl, `❌ Ralat mengambil dari IPFS: ${e}\n`, 10);
+    await typeEffect(terminalEl, `🔄 Cuba semula dengan gateway alternatif...\n`, 20);
+    
+    // Cuba gateway alternatif
+    const altGateway = `https://cloudflare-ipfs.com/ipfs/${CID}`;
+    const iframe = document.createElement('iframe');
+    iframe.src = altGateway;
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    terminalEl.appendChild(iframe);
   }
 });
 </script>
 
 </body>
-  </html>
+</html>
